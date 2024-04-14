@@ -34,16 +34,31 @@ public class PortfolioWithOnlyFrenchWine
         Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue}"));
     }
 
-    [Test]
-    public void value_grows_by_10_after_now()
+    [TestCase(100)]
+    [TestCase(199)] // off point for asset value boundary between (-inf, 200) y [200, +inf] when asset date after now
+    public void when_value_is_less_than_200_it_grows_by_10_after_now(int assetValue)
     {
         var portfolio = APortFolio()
-            .With(AnAsset().DescribedAs("French Wine").FromDate("2024/01/15").WithValue(100))
+            .With(AnAsset().DescribedAs("French Wine").FromDate("2024/01/15").WithValue(assetValue))
             .OnDate("2024/01/01")
             .Build();
 
         portfolio.ComputePortfolioValue();
 
-        Assert.That(portfolio._messages[0], Is.EqualTo("110"));
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue + 10}"));
+    }
+    
+    [TestCase(200)] // on point for asset value boundary between (-inf, 200) y [200, +inf] when asset date after now
+    [TestCase(201)] 
+    public void when_value_is_equal_or_greater_than_200_it_grows_by_10_after_now(int assetValue)
+    {
+        var portfolio = APortFolio()
+            .With(AnAsset().DescribedAs("French Wine").FromDate("2024/01/15").WithValue(assetValue))
+            .OnDate("2024/01/01")
+            .Build();
+
+        portfolio.ComputePortfolioValue();
+
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue}"));
     }
 }
