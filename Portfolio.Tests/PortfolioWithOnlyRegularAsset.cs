@@ -6,30 +6,32 @@ namespace Portfolio.Tests;
 
 public class PortfolioWithOnlyRegularAsset
 {
-    [Test]
-    public void value_decreases_by_20_before_now()
+    [TestCase(50)]
+    [TestCase(1)] // off point for asset value boundary between (-inf, 0] y (0, +inf] when asset date before now
+    public void when_value_is_more_than_zero_it_decreases_by_20_before_now(int assetValue)
     {
         var portfolio = APortFolio()
-            .With(AnAsset().DescribedAs("Some Regular Asset").FromDate("2024/01/15").WithValue(100))
+            .With(AnAsset().DescribedAs("Some Regular Asset").FromDate("2024/01/15").WithValue(assetValue))
             .OnDate("2025/01/01")
             .Build();
 
         portfolio.ComputePortfolioValue();
 
-        Assert.That(portfolio._messages[0], Is.EqualTo("80"));
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue - 20}"));
     }
-
-    [Test]
-    public void value_less_than_20_can_become_negative_before_now()
+    
+    [TestCase(0)] // on point for asset value boundary between (-inf, 0] y (0, +inf] when asset date before now
+    [TestCase(-10)]
+    public void when_value_is_equal_or_less_than_zero_it_remains_the_same_before_now(int assetValue)
     {
         var portfolio = APortFolio()
-            .With(AnAsset().DescribedAs("Some Regular Asset").FromDate("2024/01/15").WithValue(19))
+            .With(AnAsset().DescribedAs("Some Regular Asset").FromDate("2024/01/15").WithValue(assetValue))
             .OnDate("2025/01/01")
             .Build();
 
         portfolio.ComputePortfolioValue();
 
-        Assert.That(portfolio._messages[0], Is.EqualTo("-1"));
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue}"));
     }
 
     [Test]
