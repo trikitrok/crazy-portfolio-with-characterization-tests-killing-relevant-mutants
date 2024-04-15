@@ -19,11 +19,13 @@ public class PortfolioWithOnlyLotteryPrediction
         Assert.That(portfolio._messages[0], Is.EqualTo("0"));
     }
 
-    [Test]
-    public void value_grows_by_5_11_days_or_more_after_now()
+    [TestCase("2024/04/15")]
+    [TestCase("2024/01/12")] // 11 days, on point for days boundary between [6, 11) y [11, +inf]
+    
+    public void value_grows_by_5_11_days_or_more_after_now(string assetDate)
     {
         var portfolio = APortFolio()
-            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/15").WithValue(50))
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate(assetDate).WithValue(50))
             .OnDate("2024/01/01")
             .Build();
 
@@ -32,12 +34,13 @@ public class PortfolioWithOnlyLotteryPrediction
         Assert.That(portfolio._messages[0], Is.EqualTo("55"));
     }
 
-    [Test]
-    public void value_grows_by_25_less_than_11_days_after_now()
+    [TestCase("2024/01/11")] // 10 days, off point for days boundary between [6, 11) and [11, +inf]
+    [TestCase("2024/01/07")] // 6 days, on point for days boundary between [0, 6) and [6, 11)
+    public void value_grows_by_25_less_than_11_days_after_now(string assetDate)
     {
         var portfolio = APortFolio()
-            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/14").WithValue(50))
-            .OnDate("2024/04/04")
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate(assetDate).WithValue(50))
+            .OnDate("2024/01/01")
             .Build();
 
         portfolio.ComputePortfolioValue();
@@ -45,12 +48,12 @@ public class PortfolioWithOnlyLotteryPrediction
         Assert.That(portfolio._messages[0], Is.EqualTo("75"));
     }
 
-    [Test]
-    public void value_grows_by_125_less_than_6_days_after_now()
+    [TestCase("2024/01/06")] // 5 days, off point for days boundary between [0, 6) and [6, 11)
+    public void value_grows_by_125_less_than_6_days_after_now(string assetDate)
     {
         var portfolio = APortFolio()
-            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/09").WithValue(50))
-            .OnDate("2024/04/04")
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate(assetDate).WithValue(50))
+            .OnDate("2024/01/01")
             .Build();
 
         portfolio.ComputePortfolioValue();
