@@ -21,7 +21,6 @@ public class PortfolioWithOnlyLotteryPrediction
 
     [TestCase("2024/04/15")]
     [TestCase("2024/01/12")] // 11 days, on point for days boundary between [6, 11) y [11, +inf]
-    
     public void value_grows_by_5_11_days_or_more_after_now(string assetDate)
     {
         var portfolio = APortFolio()
@@ -61,17 +60,129 @@ public class PortfolioWithOnlyLotteryPrediction
         Assert.That(portfolio._messages[0], Is.EqualTo("175"));
     }
 
-    [Test]
-    public void value_can_not_be_more_than_800()
+    [TestCase(800)] // on point for value of asset boundary between (-inf, 800) and [800, +inf] (for more than 11 days)
+    [TestCase(801)]
+    public void more_than_11_days_after_now_when_value_is_equal_or_more_than_800_it_remains_the_same(int assetValue)
     {
-        const int maxValueForLotteryPredictions = 800;
         var portfolio = APortFolio()
-            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/15").WithValue(800))
-            .OnDate("2024/04/09")
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/12").WithValue(assetValue))
+            .OnDate("2024/04/01")
             .Build();
 
         portfolio.ComputePortfolioValue();
 
-        Assert.That(portfolio._messages[0], Is.EqualTo(maxValueForLotteryPredictions.ToString()));
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue}"));
+    }
+    
+    [TestCase(-794)]
+    [TestCase(799)] // off point for value of asset boundary between (-inf, 800) and [800, +inf] (for more than 11 days)
+    public void more_than_11_days_after_now_when_value_is_less_than_800_it_grows_by_5(int assetValue)
+    {
+        var portfolio = APortFolio()
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/12").WithValue(assetValue))
+            .OnDate("2024/04/01")
+            .Build();
+
+        portfolio.ComputePortfolioValue();
+
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue + 5}"));
+    }
+    
+    [TestCase(-794)] 
+    [TestCase(794)]  // off point for value of asset boundary between (-inf, 795) and [795, 800) (for 11 > days >= 6)
+    public void less_than_11_days_and_more_than_6_after_now_when_value_is_less_than_795_it_grows_by_25(int assetValue)
+    {
+        var portfolio = APortFolio()
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/08").WithValue(assetValue))
+            .OnDate("2024/04/01")
+            .Build();
+
+        portfolio.ComputePortfolioValue();
+
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue + 25}"));
+    }
+    
+    [TestCase(795)] // on point for value of asset boundary between (-inf, 795) and [795, 800) (for 11 > days >= 6)
+    [TestCase(799)] // off point for value of asset boundary between [795, 800) and [800, +inf) (for 11 > days >= 6)
+    public void less_than_11_days_and_more_than_6_after_now_when_value_is_equal_or_more_than_795_it_grows_by_5(int assetValue)
+    {
+        var portfolio = APortFolio()
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/08").WithValue(assetValue))
+            .OnDate("2024/04/01")
+            .Build();
+
+        portfolio.ComputePortfolioValue();
+
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue + 5}"));
+    }
+    
+    [TestCase(800)] // on point for value of asset boundary between [795, 800) and [800, +inf) (for 11 > days >= 6)
+    [TestCase(900)]  
+    public void less_than_11_days_and_more_than_6_after_now_when_value_is_equal_or_more_than_800_it_remains_the_same(int assetValue)
+    {
+        var portfolio = APortFolio()
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/08").WithValue(assetValue))
+            .OnDate("2024/04/01")
+            .Build();
+
+        portfolio.ComputePortfolioValue();
+
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue}"));
+    }
+    
+    [TestCase(-774)]
+    [TestCase(774)] // off point for value of asset boundary between (-inf, 775) and [775, 795) (for days < 6)
+    public void less_than_6_days_after_now_when_value_is_less_than_775_it_grows_by_125(int assetValue)
+    {
+        var portfolio = APortFolio()
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/06").WithValue(assetValue))
+            .OnDate("2024/04/01")
+            .Build();
+
+        portfolio.ComputePortfolioValue();
+
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue + 125}"));
+    }
+    
+    [TestCase(775)] // on point for value of asset boundary between (-inf, 775) and [775, 795) (for days < 6)
+    [TestCase(794)] // off point for value of asset boundary between [775, 795) and [795, 800) (for days < 6)
+    public void less_than_6_days_after_now_when_value_is_equal_or_more_than_775_it_grows_by_25(int assetValue)
+    {
+        var portfolio = APortFolio()
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/06").WithValue(assetValue))
+            .OnDate("2024/04/01")
+            .Build();
+
+        portfolio.ComputePortfolioValue();
+
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue + 25}"));
+    }
+    
+    [TestCase(795)] // on point for value of asset boundary between [775, 795) and [795, 800) (for days < 6)
+    [TestCase(799)] // off point for value of asset boundary between [795, 800) and [800, +inf) (for days < 6)
+    public void less_than_6_days_after_now_when_value_is_equal_or_more_than_795_but_less_than_800_it_grows_by_5(int assetValue)
+    {
+        var portfolio = APortFolio()
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/06").WithValue(assetValue))
+            .OnDate("2024/04/01")
+            .Build();
+
+        portfolio.ComputePortfolioValue();
+
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue + 5}"));
+    }
+    
+    [TestCase(800)] // on point for value of asset boundary between [795, 800) and [800, +inf) (for days < 6)
+    [TestCase(1000)]
+    public void less_than_6_days_after_now_when_value_is_equal_or_more_than_800_it_remains_the_same(int assetValue)
+    {
+        var portfolio = APortFolio()
+            .With(AnAsset().DescribedAs("Lottery Prediction").FromDate("2024/04/06").WithValue(assetValue))
+            .OnDate("2024/04/01")
+            .Build();
+
+        portfolio.ComputePortfolioValue();
+
+        Assert.That(portfolio._messages[0], Is.EqualTo($"{assetValue}"));
     }
 }
