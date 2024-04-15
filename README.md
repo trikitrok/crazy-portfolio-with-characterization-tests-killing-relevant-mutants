@@ -1,7 +1,7 @@
 # Crazy Portofolio
 
 Crazy portfolio kata starting point already with characterization tests 
-having maximum branch coverage possible
+that kill all relevant mutants
 
 ## Install dependencies and tools
 
